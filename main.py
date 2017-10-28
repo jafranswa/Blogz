@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:build-a-blog@localhost:8889/build-a-blog'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Blogz:Blogz@localhost:8889/Blogz'
 #database conection string = 'mysqul+pymysql://user:password@location:port_number/db_name'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
@@ -18,6 +18,44 @@ class Blog(db.Model):
     def __init__(self, title, body):
         self.title = title
         self.body = body
+
+#todo- add user class
+class User(db.Model)
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True) 
+    password = db.Column(db.String(12))
+    blogs = db.relationship( 'blogs', backref='user')
+
+    def __init__(self, username, password, blogs)
+        self.username = username
+        self.password = password
+        self.blogs = blogs
+
+
+
+@app.route('/signup', methods = ['POST','GET'])
+def signup
+    #todo-add function to add user to sql database
+    return render_template('display.html',title="Why am I always crying!", 
+        entry_titles = entry_title)
+
+@app.route('/login', methods=['POST', 'GET'])
+def login
+    #todo-add function to create users session containing email
+    return render_template('display.html',title="Why am I always crying!", 
+        entry_titles = entry_title)
+
+@app.route('/index', methods=['POST', 'GET'])
+def index
+    #todo-it is not yet clear to me what the hell this should be doing
+    return render_template('display.html',title="Why am I always crying!", 
+        entry_titles = entry_title)
+
+@app.route('/logout', methods = ['POST'])
+def logout
+    #todo- delete username from session
+    return redirect('/')
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
