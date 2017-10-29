@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, flash
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -14,46 +14,86 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(139))
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, title, body):
+    def __init__(self, title, body, owner):
         self.title = title
         self.body = body
-
-#todo- add user class
-class User(db.Model)
+        self.owner
+        
+class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True) 
     password = db.Column(db.String(12))
-    blogs = db.relationship( 'blogs', backref='user')
+    blogs = db.relationship('Blog', backref='owner')
 
-    def __init__(self, username, password, blogs)
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.blogs = blogs
 
 
 
 @app.route('/signup', methods = ['POST','GET'])
-def signup
-    #todo-add function to add user to sql database
-    return render_template('display.html',title="Why am I always crying!", 
-        entry_titles = entry_title)
+def signup():
+
+    if request.method =='POST':
+        username = request.form['new-user']
+        #user_name_error = ''
+        password = request.form['password']
+        #password_error = ''
+        confirm_password = request.form['confirm-password']
+        #passmatch_error = ''
+        email = request.form['email']
+        #email_error = ''
+        existing_user = User.query.filter_by(username=username).first()
+        #print(existing_user)
+        valid_new_user = User(username, password)
+    
+        if username == '':
+            flash('please enter a user name')
+            return render_template('signup.html',title="dont be shy",username =username, email=email)
+        elif len(password) <= 3:
+            flash('password is to short')
+            return render_template('signup.html',title='wipe away your tears',username =username, email=email)
+        elif password != confirm_password:
+            flash('passwords do not match')
+            return render_template('signup.html',title='wipe away your tears',username =username, email=email)
+        #elif email == '':
+            #return '<h1> Welcome, '+new_user+'</h1>'
+        elif '@' not in email or '.' not in email or len(email) < 5 or len(email) > 20 or ' ' in email:    
+            flash('Please enter a valid email') #a single @, a single ., contains no spaces, and is between 3 and 20 characters
+            return render_template('signup.html',title='wipe away your tears',username =username, email=email)
+        elif existing_user:
+            flash('Pick a unique user name')
+            return render_template('signup.html',title='you be you baby', email=email)
+        else:
+            db.session.add(valid_new_user)
+            db.session.commit()
+            return render_template('newpost.html',title='youre never alone... ever')
+
+    return render_template('signup.html',title='wipe away your tears')
 
 @app.route('/login', methods=['POST', 'GET'])
-def login
+def login():
     #todo-add function to create users session containing email
-    return render_template('display.html',title="Why am I always crying!", 
-        entry_titles = entry_title)
 
-@app.route('/index', methods=['POST', 'GET'])
-def index
-    #todo-it is not yet clear to me what the hell this should be doing
-    return render_template('display.html',title="Why am I always crying!", 
-        entry_titles = entry_title)
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and user.password == password:
+            session['email'] = email
+            flash("Logged in")
+            return redirect('/')
+        else:
+            flash('User password incorrect, or user does not exist', 'error')
+
+    entry_title = Blog.query.all()
+    return render_template('login.html')
 
 @app.route('/logout', methods = ['POST'])
-def logout
+def logout():
     #todo- delete username from session
     return redirect('/')
 
@@ -72,9 +112,10 @@ def index():
         entry_titles = entry_title)
 
 
-@app.route('/post', methods=['POST','GET'])
+@app.route('/newpost', methods=['POST','GET'])
 def add_post():
-
+    #todo-make sure post is bound to the user.id
+    #owner = User.query.filter_by(['email']).first()
 
     if request.method == 'POST':    
         post_title = request.form['title']
@@ -98,7 +139,7 @@ def add_post():
     #db.session.add(task)
     #db.session.commit()
 
-    return render_template('post.html',title='wipe away your tears')
+    return render_template('newpost.html',title='wipe away your tears')
 
 @app.route('/view_post', methods=['POST','GET'])
 def view_post():
