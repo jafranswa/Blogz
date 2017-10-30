@@ -5,13 +5,7 @@
 <form method='post'>
     <label>
         Post Title:
-        {% with messages = get_flashed_messages() %}
-            <ul>
-                {% for message in messages %}
-             <li>{{message}}</li>
-                {% endfor %}
-            </ul>
-        {% endwith %}
+
         <input type="text" name='title' value="{{post_title}}"/>
     </label>
     <br>

@@ -2,13 +2,13 @@
 
 {% block content %}
 <h1>Login</h1>
-<p>Missery loves company, register <a href="/register">here</a> to feel the love</p>
+<p>Missery loves company, register <a href="/signup">here</a> to feel the love</p>
 <form action="/login" method="post">
     <table>
         <tr>
-            <td><label for="email">Email</label></td>
+            <td><label for="username">Username</label></td>
             <td>
-                <input name="email" type="email" value="{{ email }}">
+                <input name="username" type="text" value="{{ username }}">
             </td>
         </tr>
         <tr>

@@ -2,13 +2,7 @@
 
 {% block content %}
 <h1>Misery loves company</h1>
-{% with messages = get_flashed_messages() %}
-<ul>
-    {% for message in messages %}
- <li>{{message}}</li>
-    {% endfor %}
-</ul>
-{% endwith %}
+
 <form action="/signup" method= "POST" >
    <div class='group'> 
     <label>
@@ -29,7 +23,7 @@
 </br></br>
     <label>
         User Email (optional)
-        <input ='text' name= 'email'/>
+        <input ='text' name= 'email' value="{{email}}"/>
     </label>
 </br></br>
     <input type="submit"/>

@@ -9,11 +9,20 @@
         </style>
     </head>
 <body>
-    <a href= '/'>main page</a> 
-    <a href="/login">Don't cry alone</a>
+    <a href= '/'>Main page</a> 
+    <a href="/login">Dont cry alone</a>
     <a href='/signup'>Join the pity party</a>
+
     {% block content %}
     {% endblock %}
 
+    {% with messages = get_flashed_messages() %}
+    <ul>
+        {% for message in messages %}
+     <li>{{message}}</li>
+        {% endfor %}
+    </ul>
+    {% endwith %}
+    <a href="/logout">Logout</a>
 </body>
 </html>

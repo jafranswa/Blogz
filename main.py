@@ -16,17 +16,18 @@ class Blog(db.Model):
     body = db.Column(db.String(139))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, title, body, owner):
+    def __init__(self, title, body, owner_id):
         self.title = title
         self.body = body
-        self.owner
+        self.owner_id =owner_id
+
         
 class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True) 
     password = db.Column(db.String(12))
-    blogs = db.relationship('Blog', backref='owner')
+    #blogs = db.relationship('Blog', backref='owner_id')
 
     def __init__(self, username, password):
         self.username = username
@@ -49,10 +50,13 @@ def signup():
         existing_user = User.query.filter_by(username=username).first()
         #print(existing_user)
         valid_new_user = User(username, password)
-    
+#todo- *optional* figure out something with a continue type statement
         if username == '':
             flash('please enter a user name')
             return render_template('signup.html',title="dont be shy",username =username, email=email)
+        elif existing_user:
+            flash('Im afraid that user name has been claimed')
+            return render_template('signup.html', title='highlight your rarity', email=email)
         elif len(password) <= 3:
             flash('password is to short')
             return render_template('signup.html',title='wipe away your tears',username =username, email=email)
@@ -64,37 +68,51 @@ def signup():
         elif '@' not in email or '.' not in email or len(email) < 5 or len(email) > 20 or ' ' in email:    
             flash('Please enter a valid email') #a single @, a single ., contains no spaces, and is between 3 and 20 characters
             return render_template('signup.html',title='wipe away your tears',username =username, email=email)
-        elif existing_user:
-            flash('Pick a unique user name')
-            return render_template('signup.html',title='you be you baby', email=email)
         else:
             db.session.add(valid_new_user)
             db.session.commit()
+            session['username'] = username
+            print(session)
             return render_template('newpost.html',title='youre never alone... ever')
 
     return render_template('signup.html',title='wipe away your tears')
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
-    #todo-add function to create users session containing email
-
+    #todo-add function to create users session containing username, complete validation
+    #pass_check = User.query.filter_by(password=password).first()
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-        if user and user.password == password:
-            session['email'] = email
+        user = User.query.filter_by(username=username).first()
+        existing_user = User.query.filter_by(username=username).first()
+        if username == '':
+            flash('Please enter a user name')
+            return render_template('login.html', username = username)
+        #elif password == '' or len(password) < 3:
+            #flash('Please enter a valid password')
+            #return render_template('login.html', username=username)
+        elif existing_user and user.password != password:
+            flash('Password is incorrect, pull it together')
+            return render_template('login.html', username=username)
+        elif not existing_user:
+            flash('username does not exist. please signup with the link above')
+        elif user and user.password == password:
+            session['username'] = username
             flash("Logged in")
-            return redirect('/')
+            print(session)
+            return redirect('/newpost')
         else:
-            flash('User password incorrect, or user does not exist', 'error')
+            flash('all validation checks failed back to the drawing board')
+            return render_template('login.html', username=username)
 
     entry_title = Blog.query.all()
     return render_template('login.html')
 
-@app.route('/logout', methods = ['POST'])
+@app.route('/logout', methods = ['GET'])
 def logout():
-    #todo- delete username from session
+    del session['username']
+    flash('Logged out')
     return redirect('/')
 
 @app.route('/', methods=['POST', 'GET'])
@@ -115,12 +133,12 @@ def index():
 @app.route('/newpost', methods=['POST','GET'])
 def add_post():
     #todo-make sure post is bound to the user.id
-    #owner = User.query.filter_by(['email']).first()
 
     if request.method == 'POST':    
         post_title = request.form['title']
         post_content = request.form['content']
-        new_post = Blog(post_title, post_content)
+        owner = User.query.filter_by(username=session['username']).first()
+        new_post = Blog(post_title, post_content,owner)
 
         if post_title == '':
             flash('Please title your troubles')
@@ -158,6 +176,16 @@ def view_post():
     #db.session.add(task)
     #db.session.commit()
 
+@app.route('/home')
+def home():
+    #username = request.args.get('username')
+    #print("test",username)
+    #key = request.args.get('id')
+    #print('test2',key)
+    #user_name_list= User.query.get(key).blogs
+    user_name_list= User.query.all()
+
+    return render_template('index.html', title='Sad doesnt mean lonley', user_name_list=user_name_list)
 
 
 if __name__ == '__main__':
