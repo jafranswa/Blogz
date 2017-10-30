@@ -82,36 +82,36 @@ def login():
     #todo-add function to create users session containing username, complete validation
     #pass_check = User.query.filter_by(password=password).first()
     if request.method == 'POST':
-        username = request.form['username']
+        user_login = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        existing_user = User.query.filter_by(username=username).first()
-        if username == '':
+        existing_user = User.query.filter_by(username=user_login).first()
+        #existing_user = User.query.filter_by(username=username).first()
+        if user_login == '':
             flash('Please enter a user name')
-            return render_template('login.html', username = username)
+            return render_template('login.html', username = user_login)
         #elif password == '' or len(password) < 3:
             #flash('Please enter a valid password')
             #return render_template('login.html', username=username)
-        elif existing_user and user.password != password:
+        elif user_login and existing_user.password != password:
             flash('Password is incorrect, pull it together')
-            return render_template('login.html', username=username)
+            return render_template('login.html', username=user_login)
         elif not existing_user:
             flash('username does not exist. please signup with the link above')
-        elif user and user.password == password:
-            session['username'] = username
+        elif user_login and existing_user.password == password:
+            session['user'] = user_login
+            print('test session', session)
             flash("Logged in")
-            print(session)
             return redirect('/newpost')
         else:
             flash('all validation checks failed back to the drawing board')
-            return render_template('login.html', username=username)
+            return render_template('login.html', username=user_login)
 
-    entry_title = Blog.query.all()
+    #entry_title = Blog.query.all()
     return render_template('login.html')
 
 @app.route('/logout', methods = ['GET'])
 def logout():
-    del session['username']
+    del session['user']
     flash('Logged out')
     return redirect('/')
 
@@ -137,8 +137,9 @@ def add_post():
     if request.method == 'POST':    
         post_title = request.form['title']
         post_content = request.form['content']
-        owner = User.query.filter_by(username=session['username']).first()
-        new_post = Blog(post_title, post_content,owner)
+        owner = User.query.filter_by(username=session['user']).first()
+        #owner= 1
+        new_post = Blog(post_title, post_content, owner)
 
         if post_title == '':
             flash('Please title your troubles')
