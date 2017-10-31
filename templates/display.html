@@ -18,7 +18,8 @@
                 <a href= '/view_post?id={{entry.id}}'>{{entry.title}}</a>
                 <br>
                 {{entry.body}}
-
+                <br>
+                <a href = '/blog?id={{entry.owner.id}}'>Written by {{entry.owner.username}}</a>
             </li>
             {% endfor %}
         </ul>

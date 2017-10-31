@@ -3,8 +3,8 @@
 {% block content %}
 <h1>Just look at all these sad people</h1>
 <ul>
-    {% for user in user_name_list %}
-        <li>{{user}}</li>    
+    {% for user in user_table %}
+        <li><a href = '/blog?id={{user.id}}'>{{user.username}}</a></li>    
     {% endfor %}
 </ul>
 {% endblock %}

@@ -14,12 +14,12 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(139))
-    owner = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, title, body, owner):
         self.title = title
         self.body = body
-        self.owner =owner
+        self.owner = owner
 
         
 class User(db.Model):
@@ -27,7 +27,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True) 
     password = db.Column(db.String(12))
-    blogs = db.relationship('Blog', backref='owner_id')
+    blogs = db.relationship('Blog', backref='owner')
 
     def __init__(self, username, password):
         self.username = username
@@ -36,7 +36,7 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup']
+    allowed_routes = ['login', 'signup', 'home']
     if request.endpoint not in allowed_routes and'user' not in session:
         return redirect('/login')
 
@@ -116,15 +116,28 @@ def logout():
 @app.route('/', methods=['POST', 'GET'])
 def index():
     
-    if request.method == 'POST':
-        task_name = request.form['new_post']
-        new_task = Blog(task_name)
-        db.session.add(new_task)
-        db.session.commit()
+    #if request.method == 'POST':
+        #task_name = request.form['new_post']
+        #new_task = Blog(task_name)
+        #db.session.add(new_task)
+        #db.session.commit()
 
+    user_table = User.query.all() #pulls user table contents
+    user_name_list= []            #list of user names in order of db
+    for user in user_table:
+        user_name_list.append(user.username)  #appends usernames from user_table
+
+    blog_table = Blog.query.all() #pulls blog table contents
+    blog_id_list = []             #list of id=primeKey in order of db
+
+    for user in blog_table:
+        blog_id_list.append(user.owner)  #appends id from blog_table
+    #flash(blog_id_list)
+    #for index in blog_id_list:
+     #   author
     entry_title = Blog.query.all()
     return render_template('display.html',title="Why am I always crying!", 
-        entry_titles = entry_title)
+        entry_titles = entry_title, user_name_list = user_name_list, blog_id_list = blog_id_list)
 
 
 @app.route('/newpost', methods=['POST','GET'])
@@ -134,9 +147,7 @@ def add_post():
         post_title = request.form['title']
         post_content = request.form['content']
         owner = User.query.filter_by(username=session['user']).first()
-        new_post = Blog(post_title, post_content, owner.id)
-        print("test",owner)
-        print('test',owner.id)
+        new_post = Blog(post_title, post_content, owner)
 
         if post_title == '':
             flash('Please title your troubles')
@@ -154,21 +165,34 @@ def add_post():
 def view_post():
 
     key = request.args.get('id')
+    #blog_table = Blog.query.all()
+    blog_table = Blog.query.filter_by(id = key).first()
     post_title = Blog.query.get(key).title
     body = Blog.query.get(key).body
         
-    return render_template('view_post.html',title='wipe away your tears', post_title = post_title, body = body)
+    return render_template('view_post.html',title='wipe away your tears', post_title = post_title, body = body, blog_table = blog_table)
 
 @app.route('/home')
 def home():
 
     user_table = User.query.all()
-    user_name_list= []
+    #user_name_list= []
 
-    for user in user_table:
-        user_name_list.append(user.username)
-    return render_template('index.html', title='Sad doesnt mean lonley', user_name_list=user_name_list)
+    #for user in user_table:
+        #user_name_list.append(user.username)
+    return render_template('index.html', title='Sad doesnt mean lonley', user_table = user_table)
 
+@app.route('/blog')
+def blog():
+
+    key = request.args.get('id')
+    posts = Blog.query.filter_by(owner_id = key).all()
+    user = User.query.filter_by(id = key).first()
+    # posts = Blog.query.get(key)
+    #post_title = Blog.query.get(key).title
+    #body = Blog.query.get(key).body
+    
+    return render_template('singleUser.html',title='wipe away your tears', posts=posts, user=user)
 
 if __name__ == '__main__':
     app.run()

@@ -6,9 +6,8 @@
     <h1>{{post_title}}</h1>
     <br>
     <a>{{body}}</a>
-
-        
-
+    <br>     
+    <a href = '/blog?id={{blog_table.owner.id}}'>Written by {{blog_table.owner.username}}</a>
 
 <hr />
 {% endblock %}

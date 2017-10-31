@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}  
+<a href= '/newpost'>More posts less tears</a> 
+
+<h1>All of {{user.username}} sorrows</h1>
+
+
+    <hr />
+
+        <ul>
+            {% for post in posts %}
+            <li>
+                <a href = '/view_post?id={{post.id}}'>{{post.title}}</a>
+                <br>
+                {{post.body}}
+            </li>
+            {% endfor %}
+        </ul>
+
+    <hr />
+
+{% endblock %}
